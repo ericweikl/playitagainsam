@@ -105,7 +105,7 @@ def get_ancestor_processes():
             try:
                 _ANCESTOR_PROCESSES.append(proc.parent.exe)
                 proc = proc.parent
-            except psutil.error.Error:
+            except psutil.Error:
                 break
     return _ANCESTOR_PROCESSES
 
