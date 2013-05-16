@@ -166,7 +166,7 @@ def main(argv, env=None):
     parser_play.add_argument("--terminal",
                              help="the terminal program to execute",
                              default=util.get_default_terminal())
-    parser_play.add_argument("--auto-type", type=int, nargs="?", const=100,
+    parser_play.add_argument("--auto-type", nargs="?", const=100,
                              help="automatically type at this speed in ms",
                              default=False)
     parser_play.add_argument("--auto-waypoint", type=int, nargs="?", const=600,

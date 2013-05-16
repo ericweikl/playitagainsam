@@ -12,6 +12,7 @@ import sys
 import time
 
 import six
+import random
 
 from playitagainsam.util import forkexec, get_default_terminal
 from playitagainsam.util import get_pias_script, get_fd
@@ -31,8 +32,10 @@ class Player(SocketCoordinator):
         self.terminal = terminal or get_default_terminal()
         if not auto_type:
             self.auto_type = False
-        else:
+        elif auto_type != 'random':
             self.auto_type = auto_type / 1000.0
+        else:
+            self.auto_type = auto_type
         if not auto_waypoint:
             self.auto_waypoint = False
         else:
@@ -97,7 +100,10 @@ class Player(SocketCoordinator):
         # we can can either wait for the user to type something, or just
         # sleep briefly to simulate the typing.
         if self.auto_type:
-            time.sleep(self.auto_type)
+            sleep_time = self.auto_type
+            if sleep_time == 'random':
+                sleep_time = 0.02 + random.random() % 0.09
+            time.sleep(sleep_time)
         else:
             c = view_sock.recv(1)
             while c in self.waypoint_chars:
