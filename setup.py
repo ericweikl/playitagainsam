@@ -19,7 +19,7 @@ except ImportError:
         raise RuntimeError("python3 support requires setuptools")
     from distutils.core import setup
 else:
-    setup_kwds["test_suite"] = "playitagainsam.test"
+    setup_kwds["test_suite"] = "playitagainsam.tests"
     if sys.version_info > (3,):
         setup_kwds["use_2to3"] = True
 
@@ -77,7 +77,7 @@ setup(name=NAME,
       keywords=KEYWORDS,
       packages=["playitagainsam"],
       scripts=["scripts/pias"],
-      install_requires=["psutil", "six"],
+      install_requires=["psutil>=2.0", "six"],
       classifiers=CLASSIFIERS,
       **setup_kwds
      )

@@ -75,6 +75,29 @@ These options both accept an integer millisecond value which will control the
 speed of the automated typing.
 
 
+Canned Replay or Live Replay?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The default playback mode outputs back the 'canned' output text from the
+original terminal session(s), without any side effects.  However, the side 
+effects might be desirable during the presentation. 
+
+For instance, when demoing a REST API, the presenter might want to show the 
+effects of the API calls on a service using a browser.  Or the demoed code 
+could drive some other non-console output, like a visualisation or a game. 
+
+The --live-replay option connects the prerecorded input to a live shell for
+actual live output and side effects:
+
+    $ pias play <input-file> --live-replay
+
+This option is composable with the previous ones:
+
+    $ pias play <input-file> --live-replay --auto-type --auto-waypoint
+
+Live replay also works two or more joined terminal sessions.
+
+
 JavaScript Player
 ~~~~~~~~~~~~~~~~~
 
@@ -101,11 +124,22 @@ that you should be aware of:
   * All terminals in a session should be the same size.  This restriction
     may go away in the future.
 
+  * The live-replay option has its own particularities:
+
+    * Sessions created with the --append switch won't continue after the first
+      recording session ends.
+
+    * Sometimes keypresses "bounce", and double characters get inserted.
+
+    * Some live-replay output sequences lasting longer than the corresponding
+      output in the recording session can get buffered waiting for the next 
+      user action.
+
 """
 
 __ver_major__ = 0
-__ver_minor__ = 2
-__ver_patch__ = 1
+__ver_minor__ = 3
+__ver_patch__ = 0
 __ver_sub__ = ""
 __ver_tuple__ = (__ver_major__, __ver_minor__, __ver_patch__, __ver_sub__)
 
@@ -140,6 +174,9 @@ def main(argv, env=None):
     parser.add_argument("--join", action="store_true",
                         help="join an existing record/replay session",
                         default=env.get("PIAS_OPT_JOIN", False))
+    parser.add_argument("--shell",
+                        help="the shell to execute when recording or live-replaying",
+                        default=util.get_default_shell())
     subparsers = parser.add_subparsers(dest="subcommand", title="subcommands")
 
     # The "record" command.
@@ -147,9 +184,6 @@ def main(argv, env=None):
     parser_record.add_argument("datafile",
                                nargs="?" if default_datafile else 1,
                                default=[default_datafile])
-    parser_record.add_argument("--shell",
-                               help="the shell to execute",
-                               default=util.get_default_shell())
     datafile_opts = parser_record.add_mutually_exclusive_group()
     datafile_opts.add_argument("--append", action="store_true",
                                help="append to an existing session file",
@@ -171,6 +205,9 @@ def main(argv, env=None):
                              default=False)
     parser_play.add_argument("--auto-waypoint", type=int, nargs="?", const=600,
                              help="auto type newlines at this speed in ms",
+                             default=False)
+    parser_play.add_argument("--live-replay", action="store_true",
+                             help="recorded input is passed to a live session, and recorded oputput is ignored",
                              default=False)
 
     # The "replay" alias for the "play" command.
@@ -224,16 +261,18 @@ def main(argv, env=None):
     try:
         if args.subcommand == "record":
             if not args.join:
-                eventlog = EventLog(args.datafile, "a" if args.append else "w")
+                eventlog = EventLog(args.datafile, "a" if args.append else "w", args.shell)
                 recorder = Recorder(sock_path, eventlog, args.shell)
                 recorder.start()
             join_recorder(sock_path)
 
         elif args.subcommand in ("play", "replay"):
             if not args.join:
-                eventlog = EventLog(args.datafile, "r")
-                player = Player(sock_path, eventlog, args.terminal,
-                                args.auto_type, args.auto_waypoint)
+                eventlog = EventLog(args.datafile, "r", args.shell, live_replay=args.live_replay)
+                shell = args.shell or eventlog.shell 
+                player = Player(sock_path, eventlog, args.terminal, 
+                                args.auto_type, args.auto_waypoint, 
+                                args.live_replay, args.shell)
                 player.start()
             join_player(sock_path)
 
