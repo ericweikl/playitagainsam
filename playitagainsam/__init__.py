@@ -147,6 +147,7 @@ __version__ = "%d.%d.%d%s" % __ver_tuple__
 
 
 import os
+import tempfile
 import sys
 import argparse
 
@@ -220,7 +221,7 @@ def main(argv, env=None):
     args = parser.parse_args(argv[1:])
 
     args.datafile = args.datafile[0]
-    sock_path = args.datafile + ".pias-session.sock"
+    sock_path = os.path.join(tempfile.gettempdir(), os.path.basename(args.datafile) + ".pias-session.sock")
 
     def err(msg, *args):
         if args:
