@@ -63,6 +63,9 @@ class Player(SocketCoordinator):
                 self._do_open_terminal(term)
             elif action == "PAUSE":
                 time.sleep(event["duration"])
+            elif action == "PROMPT":
+                view_sock, _, = self.terminals[term]
+                view_sock.recv(1)
             elif action == "READ":
                 self._do_read(term, data)
             elif action == "WRITE":
