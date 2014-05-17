@@ -69,7 +69,9 @@ class Player(SocketCoordinator):
                     c = view_sock.recv(1)
                     if c == "\33":
                       # pgup and pgdown start with \33 followed by 3 bytes, skip the next 3
-                      view_sock.recv(3)
+                      view_sock.recv(1)
+                      view_sock.recv(1)
+                      view_sock.recv(1)
                       c = six.b("\n")
             elif action == "READ":
                 self._do_read(term, data)
